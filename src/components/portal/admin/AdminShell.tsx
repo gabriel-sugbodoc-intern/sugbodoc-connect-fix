@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import { useLocation } from '@/lib/router-compat';
 import { 
   LayoutDashboard, 
@@ -28,10 +29,16 @@ const ADMIN_NAV_ITEMS = [
   { href: '/admin/insurance', label: 'Ins. Requests', icon: FileCheck2 },
   { href: '/admin/insurance/plans', label: 'Ins. Plans', icon: ShieldCheck },
   { href: '/admin/messaging', label: 'Messaging', icon: MessageSquare },
-];
+] as const;
+
+function isNavActive(location: string, href: string) {
+  if (href === '/admin') return location === '/admin' || location === '/admin/';
+  if (href === '/admin/insurance') return location === '/admin/insurance';
+  return location === href || location.startsWith(`${href}/`);
+}
 
 function AdminSidebar() {
-  const [location, setLocation] = useLocation();
+  const [location] = useLocation();
 
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card h-screen sticky top-0">
@@ -47,11 +54,11 @@ function AdminSidebar() {
       
       <nav className="flex-1 px-3 py-4 space-y-1">
         {ADMIN_NAV_ITEMS.map((item) => {
-          const isActive = location === item.href || (item.href !== '/admin' && location.startsWith(item.href));
+          const isActive = isNavActive(location, item.href);
           return (
-            <button
+            <Link
               key={item.href}
-              onClick={() => setLocation(item.href)}
+              to={item.href}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[40px] ${
                 isActive 
                   ? 'bg-primary text-primary-foreground shadow-sm' 
@@ -61,7 +68,7 @@ function AdminSidebar() {
             >
               <item.icon className="w-4 h-4 shrink-0" />
               {item.label}
-            </button>
+            </Link>
           );
         })}
       </nav>
