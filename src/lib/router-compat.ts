@@ -24,5 +24,5 @@ export function useLocation(): [string, (to: string, opts?: { replace?: boolean 
 }
 
 export function useParams<T extends Record<string, string> = Record<string, string>>(): T {
-  return useRouterParams({ strict: false }) as T;
+  return (useRouterParams as (opts: { strict: false }) => unknown)({ strict: false }) as T;
 }
