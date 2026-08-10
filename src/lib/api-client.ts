@@ -497,6 +497,14 @@ export const apiClient = {
       }
     }
     if (!currentUser) return fail("Not authenticated");
+    // Always resolve the role from the directory so admin role changes apply immediately.
+    const directoryUser = findUserByIdentifier(currentUser.email ?? currentUser.username ?? "");
+    if (directoryUser) {
+      currentUser = { ...currentUser, role: directoryUser.role, name: directoryUser.name };
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sugbodoc_user", JSON.stringify(currentUser));
+      }
+    }
     return ok({ user: currentUser });
   },
 
@@ -505,6 +513,59 @@ export const apiClient = {
     currentUser = null;
     return ok({ ok: true });
   },
+
+  // Role management (admin only)
+  getManagedUsers: async (search?: string) => {
+    await delay();
+    if (!currentUser || normalizeRole(currentUser.role) !== "admin") {
+      return fail("Only administrators can manage roles");
+    }
+    loadDirectory();
+    const users = userDirectory
+      .filter((u) => matchesSearch(u.name, search) || matchesSearch(u.email, search))
+      .map((u) => ({ ...u, role: normalizeRole(u.role) }));
+    return ok({ users });
+  },
+
+  updateUserRole: async (userId: string, role: AppRole) => {
+    await delay();
+    if (!currentUser || normalizeRole(currentUser.role) !== "admin") {
+      return fail("Only administrators can change roles");
+    }
+    loadDirectory();
+    const user = userDirectory.find((u) => u.id === userId);
+    if (!user) return fail("User not found");
+    if (user.id === currentUser.id && role !== "admin") {
+      return fail("You cannot remove your own administrator role");
+    }
+    user.role = normalizeRole(role);
+    persistDirectory();
+    return ok({ user: { ...user } });
+  },
+
+  // Doctor endpoints (scoped to the signed-in doctor)
+  getDoctorDashboard: async () => {
+    await delay();
+    const doctorName = currentDoctorName();
+    if (!doctorName) return fail("Not authorized");
+    const patients = adminPatients.filter((p) => p.assignedDoctor === doctorName);
+    const appointments = adminAppointments.filter((a) => a.doctorName === doctorName);
+    const encounters = adminEncounters.filter((e) => e.doctor === doctorName);
+    const queue = adminQueue.filter((q) => q.doctorName === doctorName);
+    return ok({
+      doctor: { name: doctorName, specialty: doctors.find((d) => d.name === doctorName)?.specialty ?? "General Medicine" },
+      summary: {
+        assignedPatients: patients.length,
+        upcomingAppointments: appointments.filter((a) => a.status === "Confirmed" || a.status === "Pending").length,
+        encounters: encounters.length,
+        waitingInQueue: queue.filter((q) => q.status === "Waiting" || q.status === "Serving").length,
+      },
+      recentAppointments: appointments.slice(0, 6),
+      recentEncounters: encounters.slice(0, 6),
+      assignedPatients: patients.slice(0, 6),
+    });
+  },
+
 
   getProfile: async () => {
     await delay();
