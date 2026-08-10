@@ -55,6 +55,8 @@ type StoredUser = {
   role: string;
   status?: string;
   emailVerified?: boolean;
+  /** Demo-only password for the seeded accounts. */
+  password?: string;
 };
 
 let currentUser: StoredUser | null = null;
@@ -77,6 +79,7 @@ const seededUsers: StoredUser[] = [
   {
     id: "user_1",
     email: "juan.delacruz@example.com",
+    password: "Patient123!",
     username: "juan.delacruz",
     name: demoPatient.name,
     phone: "09171234567",
@@ -87,6 +90,7 @@ const seededUsers: StoredUser[] = [
   {
     id: "admin_1",
     email: "admin@sugbodoc.com",
+    password: "Admin123!",
     username: "admin",
     name: "Admin User",
     phone: "09170000001",
@@ -97,6 +101,7 @@ const seededUsers: StoredUser[] = [
   {
     id: "doctor_1",
     email: "doctor@sugbodoc.com",
+    password: "Doctor123!",
     username: "doctor",
     name: doctors[0]?.name ?? "Dr. Ana Reyes",
     phone: "09170000002",
@@ -474,9 +479,13 @@ export const apiClient = {
     return ok({ token: "mock-token", user });
   },
 
-  login: async (identifier: string, _password: string) => {
+  login: async (identifier: string, password: string) => {
     await delay();
     if (!identifier) return fail("Please enter your credentials");
+    const existing = findUserByIdentifier(identifier);
+    if (existing?.password && existing.password !== password) {
+      return fail("Incorrect email or password.");
+    }
     const user = makeUser(identifier);
     currentUser = user;
     return ok({ token: "mock-token", user });
