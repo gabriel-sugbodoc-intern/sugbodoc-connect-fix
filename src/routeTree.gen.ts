@@ -10,33 +10,336 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppointmentsRouteImport } from './routes/appointments'
+import { Route as BillingRouteImport } from './routes/billing'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as InsuranceRouteImport } from './routes/insurance'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as QueueRouteImport } from './routes/queue'
+import { Route as RecordsRouteImport } from './routes/records'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as StoreRouteImport } from './routes/store'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAppointmentsRouteImport } from './routes/admin.appointments'
+import { Route as AdminBillingRouteImport } from './routes/admin.billing'
+import { Route as AdminEncountersRouteImport } from './routes/admin.encounters'
+import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
+import { Route as AdminMessagingRouteImport } from './routes/admin.messaging'
+import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AdminQueueRouteImport } from './routes/admin.queue'
+import { Route as AdminInsuranceIndexRouteImport } from './routes/admin.insurance.index'
+import { Route as AdminInsurancePlansRouteImport } from './routes/admin.insurance.plans'
+import { Route as AdminPatientsIndexRouteImport } from './routes/admin.patients.index'
+import { Route as AdminPatientsIdRouteImport } from './routes/admin.patients.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppointmentsRoute = AppointmentsRouteImport.update({
+  id: '/appointments',
+  path: '/appointments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsuranceRoute = InsuranceRouteImport.update({
+  id: '/insurance',
+  path: '/insurance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QueueRoute = QueueRouteImport.update({
+  id: '/queue',
+  path: '/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecordsRoute = RecordsRouteImport.update({
+  id: '/records',
+  path: '/records',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreRoute = StoreRouteImport.update({
+  id: '/store',
+  path: '/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAppointmentsRoute = AdminAppointmentsRouteImport.update({
+  id: '/admin/appointments',
+  path: '/admin/appointments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBillingRoute = AdminBillingRouteImport.update({
+  id: '/admin/billing',
+  path: '/admin/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEncountersRoute = AdminEncountersRouteImport.update({
+  id: '/admin/encounters',
+  path: '/admin/encounters',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminInventoryRoute = AdminInventoryRouteImport.update({
+  id: '/admin/inventory',
+  path: '/admin/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMessagingRoute = AdminMessagingRouteImport.update({
+  id: '/admin/messaging',
+  path: '/admin/messaging',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/admin/orders',
+  path: '/admin/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminQueueRoute = AdminQueueRouteImport.update({
+  id: '/admin/queue',
+  path: '/admin/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminInsuranceIndexRoute = AdminInsuranceIndexRouteImport.update({
+  id: '/admin/insurance/',
+  path: '/admin/insurance/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminInsurancePlansRoute = AdminInsurancePlansRouteImport.update({
+  id: '/admin/insurance/plans',
+  path: '/admin/insurance/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPatientsIndexRoute = AdminPatientsIndexRouteImport.update({
+  id: '/admin/patients/',
+  path: '/admin/patients/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPatientsIdRoute = AdminPatientsIdRouteImport.update({
+  id: '/admin/patients/$id',
+  path: '/admin/patients/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/appointments': typeof AppointmentsRoute
+  '/billing': typeof BillingRoute
+  '/dashboard': typeof DashboardRoute
+  '/insurance': typeof InsuranceRoute
+  '/login': typeof LoginRoute
+  '/messages': typeof MessagesRoute
+  '/profile': typeof ProfileRoute
+  '/queue': typeof QueueRoute
+  '/records': typeof RecordsRoute
+  '/register': typeof RegisterRoute
+  '/store': typeof StoreRoute
+  '/admin/appointments': typeof AdminAppointmentsRoute
+  '/admin/billing': typeof AdminBillingRoute
+  '/admin/encounters': typeof AdminEncountersRoute
+  '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/messaging': typeof AdminMessagingRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/queue': typeof AdminQueueRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/insurance/plans': typeof AdminInsurancePlansRoute
+  '/admin/patients/$id': typeof AdminPatientsIdRoute
+  '/admin/insurance/': typeof AdminInsuranceIndexRoute
+  '/admin/patients/': typeof AdminPatientsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/appointments': typeof AppointmentsRoute
+  '/billing': typeof BillingRoute
+  '/dashboard': typeof DashboardRoute
+  '/insurance': typeof InsuranceRoute
+  '/login': typeof LoginRoute
+  '/messages': typeof MessagesRoute
+  '/profile': typeof ProfileRoute
+  '/queue': typeof QueueRoute
+  '/records': typeof RecordsRoute
+  '/register': typeof RegisterRoute
+  '/store': typeof StoreRoute
+  '/admin/appointments': typeof AdminAppointmentsRoute
+  '/admin/billing': typeof AdminBillingRoute
+  '/admin/encounters': typeof AdminEncountersRoute
+  '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/messaging': typeof AdminMessagingRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/queue': typeof AdminQueueRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/insurance/plans': typeof AdminInsurancePlansRoute
+  '/admin/patients/$id': typeof AdminPatientsIdRoute
+  '/admin/insurance': typeof AdminInsuranceIndexRoute
+  '/admin/patients': typeof AdminPatientsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/appointments': typeof AppointmentsRoute
+  '/billing': typeof BillingRoute
+  '/dashboard': typeof DashboardRoute
+  '/insurance': typeof InsuranceRoute
+  '/login': typeof LoginRoute
+  '/messages': typeof MessagesRoute
+  '/profile': typeof ProfileRoute
+  '/queue': typeof QueueRoute
+  '/records': typeof RecordsRoute
+  '/register': typeof RegisterRoute
+  '/store': typeof StoreRoute
+  '/admin/appointments': typeof AdminAppointmentsRoute
+  '/admin/billing': typeof AdminBillingRoute
+  '/admin/encounters': typeof AdminEncountersRoute
+  '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/messaging': typeof AdminMessagingRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/queue': typeof AdminQueueRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/insurance/plans': typeof AdminInsurancePlansRoute
+  '/admin/patients/$id': typeof AdminPatientsIdRoute
+  '/admin/insurance/': typeof AdminInsuranceIndexRoute
+  '/admin/patients/': typeof AdminPatientsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/appointments'
+    | '/billing'
+    | '/dashboard'
+    | '/insurance'
+    | '/login'
+    | '/messages'
+    | '/profile'
+    | '/queue'
+    | '/records'
+    | '/register'
+    | '/store'
+    | '/admin/appointments'
+    | '/admin/billing'
+    | '/admin/encounters'
+    | '/admin/inventory'
+    | '/admin/messaging'
+    | '/admin/orders'
+    | '/admin/queue'
+    | '/admin/'
+    | '/admin/insurance/plans'
+    | '/admin/patients/$id'
+    | '/admin/insurance/'
+    | '/admin/patients/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/appointments'
+    | '/billing'
+    | '/dashboard'
+    | '/insurance'
+    | '/login'
+    | '/messages'
+    | '/profile'
+    | '/queue'
+    | '/records'
+    | '/register'
+    | '/store'
+    | '/admin/appointments'
+    | '/admin/billing'
+    | '/admin/encounters'
+    | '/admin/inventory'
+    | '/admin/messaging'
+    | '/admin/orders'
+    | '/admin/queue'
+    | '/admin'
+    | '/admin/insurance/plans'
+    | '/admin/patients/$id'
+    | '/admin/insurance'
+    | '/admin/patients'
+  id:
+    | '__root__'
+    | '/'
+    | '/appointments'
+    | '/billing'
+    | '/dashboard'
+    | '/insurance'
+    | '/login'
+    | '/messages'
+    | '/profile'
+    | '/queue'
+    | '/records'
+    | '/register'
+    | '/store'
+    | '/admin/appointments'
+    | '/admin/billing'
+    | '/admin/encounters'
+    | '/admin/inventory'
+    | '/admin/messaging'
+    | '/admin/orders'
+    | '/admin/queue'
+    | '/admin/'
+    | '/admin/insurance/plans'
+    | '/admin/patients/$id'
+    | '/admin/insurance/'
+    | '/admin/patients/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppointmentsRoute: typeof AppointmentsRoute
+  BillingRoute: typeof BillingRoute
+  DashboardRoute: typeof DashboardRoute
+  InsuranceRoute: typeof InsuranceRoute
+  LoginRoute: typeof LoginRoute
+  MessagesRoute: typeof MessagesRoute
+  ProfileRoute: typeof ProfileRoute
+  QueueRoute: typeof QueueRoute
+  RecordsRoute: typeof RecordsRoute
+  RegisterRoute: typeof RegisterRoute
+  StoreRoute: typeof StoreRoute
+  AdminAppointmentsRoute: typeof AdminAppointmentsRoute
+  AdminBillingRoute: typeof AdminBillingRoute
+  AdminEncountersRoute: typeof AdminEncountersRoute
+  AdminInventoryRoute: typeof AdminInventoryRoute
+  AdminMessagingRoute: typeof AdminMessagingRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminQueueRoute: typeof AdminQueueRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminInsurancePlansRoute: typeof AdminInsurancePlansRoute
+  AdminPatientsIdRoute: typeof AdminPatientsIdRoute
+  AdminInsuranceIndexRoute: typeof AdminInsuranceIndexRoute
+  AdminPatientsIndexRoute: typeof AdminPatientsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +351,196 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/appointments': {
+      id: '/appointments'
+      path: '/appointments'
+      fullPath: '/appointments'
+      preLoaderRoute: typeof AppointmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insurance': {
+      id: '/insurance'
+      path: '/insurance'
+      fullPath: '/insurance'
+      preLoaderRoute: typeof InsuranceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/queue': {
+      id: '/queue'
+      path: '/queue'
+      fullPath: '/queue'
+      preLoaderRoute: typeof QueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/records': {
+      id: '/records'
+      path: '/records'
+      fullPath: '/records'
+      preLoaderRoute: typeof RecordsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store': {
+      id: '/store'
+      path: '/store'
+      fullPath: '/store'
+      preLoaderRoute: typeof StoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/appointments': {
+      id: '/admin/appointments'
+      path: '/admin/appointments'
+      fullPath: '/admin/appointments'
+      preLoaderRoute: typeof AdminAppointmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/billing': {
+      id: '/admin/billing'
+      path: '/admin/billing'
+      fullPath: '/admin/billing'
+      preLoaderRoute: typeof AdminBillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/encounters': {
+      id: '/admin/encounters'
+      path: '/admin/encounters'
+      fullPath: '/admin/encounters'
+      preLoaderRoute: typeof AdminEncountersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/inventory': {
+      id: '/admin/inventory'
+      path: '/admin/inventory'
+      fullPath: '/admin/inventory'
+      preLoaderRoute: typeof AdminInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/messaging': {
+      id: '/admin/messaging'
+      path: '/admin/messaging'
+      fullPath: '/admin/messaging'
+      preLoaderRoute: typeof AdminMessagingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/admin/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/queue': {
+      id: '/admin/queue'
+      path: '/admin/queue'
+      fullPath: '/admin/queue'
+      preLoaderRoute: typeof AdminQueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/insurance/': {
+      id: '/admin/insurance/'
+      path: '/admin/insurance'
+      fullPath: '/admin/insurance/'
+      preLoaderRoute: typeof AdminInsuranceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/insurance/plans': {
+      id: '/admin/insurance/plans'
+      path: '/admin/insurance/plans'
+      fullPath: '/admin/insurance/plans'
+      preLoaderRoute: typeof AdminInsurancePlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/patients/': {
+      id: '/admin/patients/'
+      path: '/admin/patients'
+      fullPath: '/admin/patients/'
+      preLoaderRoute: typeof AdminPatientsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/patients/$id': {
+      id: '/admin/patients/$id'
+      path: '/admin/patients/$id'
+      fullPath: '/admin/patients/$id'
+      preLoaderRoute: typeof AdminPatientsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppointmentsRoute: AppointmentsRoute,
+  BillingRoute: BillingRoute,
+  DashboardRoute: DashboardRoute,
+  InsuranceRoute: InsuranceRoute,
+  LoginRoute: LoginRoute,
+  MessagesRoute: MessagesRoute,
+  ProfileRoute: ProfileRoute,
+  QueueRoute: QueueRoute,
+  RecordsRoute: RecordsRoute,
+  RegisterRoute: RegisterRoute,
+  StoreRoute: StoreRoute,
+  AdminAppointmentsRoute: AdminAppointmentsRoute,
+  AdminBillingRoute: AdminBillingRoute,
+  AdminEncountersRoute: AdminEncountersRoute,
+  AdminInventoryRoute: AdminInventoryRoute,
+  AdminMessagingRoute: AdminMessagingRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
+  AdminQueueRoute: AdminQueueRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminInsurancePlansRoute: AdminInsurancePlansRoute,
+  AdminPatientsIdRoute: AdminPatientsIdRoute,
+  AdminInsuranceIndexRoute: AdminInsuranceIndexRoute,
+  AdminPatientsIndexRoute: AdminPatientsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
