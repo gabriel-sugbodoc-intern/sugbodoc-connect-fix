@@ -5,6 +5,7 @@ import { ChevronRight, Users, Filter } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import SearchFilter from '@/components/portal/admin/SearchFilter';
 import StatusBadge from '@/components/portal/admin/StatusBadge';
+import { usePortalBase } from '@/lib/portal-base';
 
 type Patient = {
   id: string;
@@ -127,7 +128,7 @@ export default function AdminPatients() {
                   <tr
                     key={patient.id}
                     className="hover:bg-muted/30 transition-colors cursor-pointer"
-                    onClick={() => setLocation(`/admin/patients/${patient.id}`)}
+                    onClick={() => setLocation(`${portalBase}/patients/${patient.id}`)}
                     data-testid={`patient-row-${patient.id}`}
                   >
                     <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
@@ -168,7 +169,7 @@ export default function AdminPatients() {
             {filteredPatients.map(patient => (
               <button
                 key={patient.id}
-                onClick={() => setLocation(`/admin/patients/${patient.id}`)}
+                onClick={() => setLocation(`${portalBase}/patients/${patient.id}`)}
                 className="w-full px-4 py-4 hover:bg-muted/30 transition-colors text-left"
                 data-testid={`patient-card-${patient.id}`}
               >

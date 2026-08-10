@@ -29,10 +29,18 @@ import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminMessagingRouteImport } from './routes/admin.messaging'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminQueueRouteImport } from './routes/admin.queue'
+import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as DoctorIndexRouteImport } from './routes/doctor.index'
+import { Route as DoctorAppointmentsRouteImport } from './routes/doctor.appointments'
+import { Route as DoctorEncountersRouteImport } from './routes/doctor.encounters'
+import { Route as DoctorMessagingRouteImport } from './routes/doctor.messaging'
+import { Route as DoctorProfileRouteImport } from './routes/doctor.profile'
 import { Route as AdminInsuranceIndexRouteImport } from './routes/admin.insurance.index'
 import { Route as AdminInsurancePlansRouteImport } from './routes/admin.insurance.plans'
 import { Route as AdminPatientsIndexRouteImport } from './routes/admin.patients.index'
 import { Route as AdminPatientsIdRouteImport } from './routes/admin.patients.$id'
+import { Route as DoctorPatientsIndexRouteImport } from './routes/doctor.patients.index'
+import { Route as DoctorPatientsIdRouteImport } from './routes/doctor.patients.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -134,6 +142,36 @@ const AdminQueueRoute = AdminQueueRouteImport.update({
   path: '/admin/queue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/admin/roles',
+  path: '/admin/roles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorIndexRoute = DoctorIndexRouteImport.update({
+  id: '/doctor/',
+  path: '/doctor/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorAppointmentsRoute = DoctorAppointmentsRouteImport.update({
+  id: '/doctor/appointments',
+  path: '/doctor/appointments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorEncountersRoute = DoctorEncountersRouteImport.update({
+  id: '/doctor/encounters',
+  path: '/doctor/encounters',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorMessagingRoute = DoctorMessagingRouteImport.update({
+  id: '/doctor/messaging',
+  path: '/doctor/messaging',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorProfileRoute = DoctorProfileRouteImport.update({
+  id: '/doctor/profile',
+  path: '/doctor/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminInsuranceIndexRoute = AdminInsuranceIndexRouteImport.update({
   id: '/admin/insurance/',
   path: '/admin/insurance/',
@@ -152,6 +190,16 @@ const AdminPatientsIndexRoute = AdminPatientsIndexRouteImport.update({
 const AdminPatientsIdRoute = AdminPatientsIdRouteImport.update({
   id: '/admin/patients/$id',
   path: '/admin/patients/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorPatientsIndexRoute = DoctorPatientsIndexRouteImport.update({
+  id: '/doctor/patients/',
+  path: '/doctor/patients/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorPatientsIdRoute = DoctorPatientsIdRouteImport.update({
+  id: '/doctor/patients/$id',
+  path: '/doctor/patients/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -175,11 +223,19 @@ export interface FileRoutesByFullPath {
   '/admin/messaging': typeof AdminMessagingRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/queue': typeof AdminQueueRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/doctor/appointments': typeof DoctorAppointmentsRoute
+  '/doctor/encounters': typeof DoctorEncountersRoute
+  '/doctor/messaging': typeof DoctorMessagingRoute
+  '/doctor/profile': typeof DoctorProfileRoute
   '/admin/': typeof AdminIndexRoute
+  '/doctor/': typeof DoctorIndexRoute
   '/admin/insurance/plans': typeof AdminInsurancePlansRoute
   '/admin/patients/$id': typeof AdminPatientsIdRoute
+  '/doctor/patients/$id': typeof DoctorPatientsIdRoute
   '/admin/insurance/': typeof AdminInsuranceIndexRoute
   '/admin/patients/': typeof AdminPatientsIndexRoute
+  '/doctor/patients/': typeof DoctorPatientsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -201,11 +257,19 @@ export interface FileRoutesByTo {
   '/admin/messaging': typeof AdminMessagingRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/queue': typeof AdminQueueRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/doctor/appointments': typeof DoctorAppointmentsRoute
+  '/doctor/encounters': typeof DoctorEncountersRoute
+  '/doctor/messaging': typeof DoctorMessagingRoute
+  '/doctor/profile': typeof DoctorProfileRoute
   '/admin': typeof AdminIndexRoute
+  '/doctor': typeof DoctorIndexRoute
   '/admin/insurance/plans': typeof AdminInsurancePlansRoute
   '/admin/patients/$id': typeof AdminPatientsIdRoute
+  '/doctor/patients/$id': typeof DoctorPatientsIdRoute
   '/admin/insurance': typeof AdminInsuranceIndexRoute
   '/admin/patients': typeof AdminPatientsIndexRoute
+  '/doctor/patients': typeof DoctorPatientsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -228,11 +292,19 @@ export interface FileRoutesById {
   '/admin/messaging': typeof AdminMessagingRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/queue': typeof AdminQueueRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/doctor/appointments': typeof DoctorAppointmentsRoute
+  '/doctor/encounters': typeof DoctorEncountersRoute
+  '/doctor/messaging': typeof DoctorMessagingRoute
+  '/doctor/profile': typeof DoctorProfileRoute
   '/admin/': typeof AdminIndexRoute
+  '/doctor/': typeof DoctorIndexRoute
   '/admin/insurance/plans': typeof AdminInsurancePlansRoute
   '/admin/patients/$id': typeof AdminPatientsIdRoute
+  '/doctor/patients/$id': typeof DoctorPatientsIdRoute
   '/admin/insurance/': typeof AdminInsuranceIndexRoute
   '/admin/patients/': typeof AdminPatientsIndexRoute
+  '/doctor/patients/': typeof DoctorPatientsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -256,11 +328,19 @@ export interface FileRouteTypes {
     | '/admin/messaging'
     | '/admin/orders'
     | '/admin/queue'
+    | '/admin/roles'
+    | '/doctor/appointments'
+    | '/doctor/encounters'
+    | '/doctor/messaging'
+    | '/doctor/profile'
     | '/admin/'
+    | '/doctor/'
     | '/admin/insurance/plans'
     | '/admin/patients/$id'
+    | '/doctor/patients/$id'
     | '/admin/insurance/'
     | '/admin/patients/'
+    | '/doctor/patients/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -282,11 +362,19 @@ export interface FileRouteTypes {
     | '/admin/messaging'
     | '/admin/orders'
     | '/admin/queue'
+    | '/admin/roles'
+    | '/doctor/appointments'
+    | '/doctor/encounters'
+    | '/doctor/messaging'
+    | '/doctor/profile'
     | '/admin'
+    | '/doctor'
     | '/admin/insurance/plans'
     | '/admin/patients/$id'
+    | '/doctor/patients/$id'
     | '/admin/insurance'
     | '/admin/patients'
+    | '/doctor/patients'
   id:
     | '__root__'
     | '/'
@@ -308,11 +396,19 @@ export interface FileRouteTypes {
     | '/admin/messaging'
     | '/admin/orders'
     | '/admin/queue'
+    | '/admin/roles'
+    | '/doctor/appointments'
+    | '/doctor/encounters'
+    | '/doctor/messaging'
+    | '/doctor/profile'
     | '/admin/'
+    | '/doctor/'
     | '/admin/insurance/plans'
     | '/admin/patients/$id'
+    | '/doctor/patients/$id'
     | '/admin/insurance/'
     | '/admin/patients/'
+    | '/doctor/patients/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -335,11 +431,19 @@ export interface RootRouteChildren {
   AdminMessagingRoute: typeof AdminMessagingRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminQueueRoute: typeof AdminQueueRoute
+  AdminRolesRoute: typeof AdminRolesRoute
+  DoctorAppointmentsRoute: typeof DoctorAppointmentsRoute
+  DoctorEncountersRoute: typeof DoctorEncountersRoute
+  DoctorMessagingRoute: typeof DoctorMessagingRoute
+  DoctorProfileRoute: typeof DoctorProfileRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  DoctorIndexRoute: typeof DoctorIndexRoute
   AdminInsurancePlansRoute: typeof AdminInsurancePlansRoute
   AdminPatientsIdRoute: typeof AdminPatientsIdRoute
+  DoctorPatientsIdRoute: typeof DoctorPatientsIdRoute
   AdminInsuranceIndexRoute: typeof AdminInsuranceIndexRoute
   AdminPatientsIndexRoute: typeof AdminPatientsIndexRoute
+  DoctorPatientsIndexRoute: typeof DoctorPatientsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -484,6 +588,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminQueueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/admin/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doctor/': {
+      id: '/doctor/'
+      path: '/doctor'
+      fullPath: '/doctor/'
+      preLoaderRoute: typeof DoctorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doctor/appointments': {
+      id: '/doctor/appointments'
+      path: '/doctor/appointments'
+      fullPath: '/doctor/appointments'
+      preLoaderRoute: typeof DoctorAppointmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doctor/encounters': {
+      id: '/doctor/encounters'
+      path: '/doctor/encounters'
+      fullPath: '/doctor/encounters'
+      preLoaderRoute: typeof DoctorEncountersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doctor/messaging': {
+      id: '/doctor/messaging'
+      path: '/doctor/messaging'
+      fullPath: '/doctor/messaging'
+      preLoaderRoute: typeof DoctorMessagingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doctor/profile': {
+      id: '/doctor/profile'
+      path: '/doctor/profile'
+      fullPath: '/doctor/profile'
+      preLoaderRoute: typeof DoctorProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/insurance/': {
       id: '/admin/insurance/'
       path: '/admin/insurance'
@@ -512,6 +658,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPatientsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doctor/patients/': {
+      id: '/doctor/patients/'
+      path: '/doctor/patients'
+      fullPath: '/doctor/patients/'
+      preLoaderRoute: typeof DoctorPatientsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doctor/patients/$id': {
+      id: '/doctor/patients/$id'
+      path: '/doctor/patients/$id'
+      fullPath: '/doctor/patients/$id'
+      preLoaderRoute: typeof DoctorPatientsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -535,11 +695,19 @@ const rootRouteChildren: RootRouteChildren = {
   AdminMessagingRoute: AdminMessagingRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminQueueRoute: AdminQueueRoute,
+  AdminRolesRoute: AdminRolesRoute,
+  DoctorAppointmentsRoute: DoctorAppointmentsRoute,
+  DoctorEncountersRoute: DoctorEncountersRoute,
+  DoctorMessagingRoute: DoctorMessagingRoute,
+  DoctorProfileRoute: DoctorProfileRoute,
   AdminIndexRoute: AdminIndexRoute,
+  DoctorIndexRoute: DoctorIndexRoute,
   AdminInsurancePlansRoute: AdminInsurancePlansRoute,
   AdminPatientsIdRoute: AdminPatientsIdRoute,
+  DoctorPatientsIdRoute: DoctorPatientsIdRoute,
   AdminInsuranceIndexRoute: AdminInsuranceIndexRoute,
   AdminPatientsIndexRoute: AdminPatientsIndexRoute,
+  DoctorPatientsIndexRoute: DoctorPatientsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
