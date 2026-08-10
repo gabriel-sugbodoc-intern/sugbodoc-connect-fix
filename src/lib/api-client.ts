@@ -891,7 +891,9 @@ export const apiClient = {
 
   getAdminPatients: async (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string }) => {
     await delay();
+    const scope = currentDoctorName();
     let results = adminPatients.filter((p) => {
+      if (scope && p.assignedDoctor !== scope) return false;
       if (params?.status && params.status !== "all" && p.status !== params.status) return false;
       if (params?.search && !(matchesSearch(p.name, params.search) || matchesSearch(p.email, params.search))) return false;
       return true;
@@ -907,6 +909,8 @@ export const apiClient = {
     await delay();
     const patient = adminPatients.find((p) => p.id === id);
     if (!patient) return fail("Patient not found");
+    const scope = currentDoctorName();
+    if (scope && patient.assignedDoctor !== scope) return fail("You are not authorized to view this patient");
     return ok({
       patient: {
         ...patient,
@@ -942,7 +946,9 @@ export const apiClient = {
 
   getAdminAppointments: async (params?: { search?: string; status?: string; department?: string; doctor?: string; date?: string }) => {
     await delay();
+    const scope = currentDoctorName();
     const results = adminAppointments.filter((a) => {
+      if (scope && a.doctorName !== scope) return false;
       if (params?.status && params.status !== "all" && a.status !== params.status) return false;
       if (params?.department && params.department !== "all" && a.department !== params.department) return false;
       if (params?.doctor && params.doctor !== "all" && a.doctorName !== params.doctor) return false;
@@ -955,7 +961,9 @@ export const apiClient = {
 
   getAdminQueue: async (params?: { search?: string; department?: string; status?: string }) => {
     await delay();
+    const scope = currentDoctorName();
     const results = adminQueue.filter((q) => {
+      if (scope && q.doctorName !== scope) return false;
       if (params?.status && params.status !== "all" && q.status !== params.status) return false;
       if (params?.department && params.department !== "all" && q.department !== params.department) return false;
       if (params?.search && !matchesSearch(q.patientName, params.search)) return false;
@@ -1033,7 +1041,9 @@ export const apiClient = {
 
   getAdminEncounters: async (params?: { search?: string; patientId?: string; doctor?: string; department?: string; dateFrom?: string; dateTo?: string; sortBy?: string; sortDir?: string; page?: number; limit?: number }) => {
     await delay();
+    const scope = currentDoctorName();
     let results = adminEncounters.filter((e) => {
+      if (scope && e.doctor !== scope) return false;
       if (params?.patientId && e.patientId !== params.patientId) return false;
       if (params?.doctor && params.doctor !== "all" && e.doctor !== params.doctor) return false;
       if (params?.department && params.department !== "all" && e.department !== params.department) return false;
@@ -1149,13 +1159,18 @@ export const apiClient = {
   // Admin Messaging
   getAdminMessagingPatients: async (search?: string) => {
     await delay();
-    const results = adminPatients.filter((p) => matchesSearch(p.name, search) || matchesSearch(p.email, search));
+    const scope = currentDoctorName();
+    const results = adminPatients.filter(
+      (p) => (!scope || p.assignedDoctor === scope) && (matchesSearch(p.name, search) || matchesSearch(p.email, search)),
+    );
     return ok({ patients: results.map((p) => ({ id: p.id, name: p.name, email: p.email, phone: p.phone })) });
   },
 
   getAdminConversation: async (patientId: string) => {
     await delay();
     const patient = adminPatients.find((p) => p.id === patientId);
+    const scope = currentDoctorName();
+    if (scope && patient && patient.assignedDoctor !== scope) return fail("You are not authorized to view this conversation");
     return ok({ messages: adminMessagingThreads[patientId] ?? [], patient: patient ? { id: patient.id, name: patient.name, email: patient.email, phone: patient.phone } : { id: patientId, name: "Patient", email: "", phone: "" } });
   },
 
