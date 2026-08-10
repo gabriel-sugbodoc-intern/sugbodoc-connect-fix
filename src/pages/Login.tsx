@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from '@/lib/router-compat';
-import { HeartPulse, Loader2, Eye, EyeOff } from 'lucide-react';
+import { HeartPulse, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 
@@ -62,7 +63,10 @@ export default function Login({ initialMode = 'login' }: { initialMode?: Mode } 
       if (data) {
         localStorage.setItem('sugbodoc_auth', data.token);
         localStorage.setItem('sugbodoc_user', JSON.stringify(data.user));
-        setLocation(['admin', 'administrator'].includes(data.user.role?.toLowerCase()) ? '/admin' : '/dashboard');
+        const role = String(data.user.role ?? '').toLowerCase();
+        setLocation(
+          ['admin', 'administrator'].includes(role) ? '/admin' : role === 'doctor' ? '/doctor' : '/dashboard',
+        );
         toast.success(`Welcome back, ${data.user.name}!`);
       }
     } finally {
@@ -99,6 +103,17 @@ export default function Login({ initialMode = 'login' }: { initialMode?: Mode } 
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-md mb-4">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+          data-testid="link-back-home"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
+      </div>
+
       <div className="w-full max-w-md bg-card rounded-2xl shadow-xl border border-border p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
         <div className="flex flex-col items-center mb-6">
