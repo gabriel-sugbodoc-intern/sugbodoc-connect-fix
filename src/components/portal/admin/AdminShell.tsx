@@ -14,6 +14,7 @@ import {
   FileCheck2,
   MessageSquare,
   ShieldCheck,
+  UserCog,
 } from 'lucide-react';
 import LogoutDialog from '@/components/portal/auth/LogoutDialog';
 
@@ -29,6 +30,7 @@ const ADMIN_NAV_ITEMS = [
   { href: '/admin/insurance', label: 'Ins. Requests', icon: FileCheck2 },
   { href: '/admin/insurance/plans', label: 'Ins. Plans', icon: ShieldCheck },
   { href: '/admin/messaging', label: 'Messaging', icon: MessageSquare },
+  { href: '/admin/roles', label: 'Role Management', icon: UserCog },
 ] as const;
 
 function isNavActive(location: string, href: string) {
@@ -121,7 +123,6 @@ function AdminTopBar() {
         <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
           {initials}
         </div>
-        <LogoutDialog className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" />
       </div>
     </header>
   );
