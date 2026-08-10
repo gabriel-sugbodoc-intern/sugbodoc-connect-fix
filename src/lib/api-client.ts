@@ -55,23 +55,141 @@ type StoredUser = {
   role: string;
   status?: string;
   emailVerified?: boolean;
+  /** Demo-only password for the seeded accounts. */
+  password?: string;
 };
 
 let currentUser: StoredUser | null = null;
 
+export type AppRole = "patient" | "doctor" | "admin";
+export const APP_ROLES: AppRole[] = ["patient", "doctor", "admin"];
+
+export function normalizeRole(role?: string | null): AppRole {
+  const value = String(role ?? "").toLowerCase();
+  if (value === "admin" || value === "administrator") return "admin";
+  if (value === "doctor" || value === "physician") return "doctor";
+  return "patient";
+}
+
+const USERS_STORAGE_KEY = "sugbodoc_users";
+
+// Seeded directory of demo accounts. Roles are persisted locally so admin role
+// changes survive reloads for the duration of the demo.
+const seededUsers: StoredUser[] = [
+  {
+    id: "user_1",
+    email: "juan.delacruz@example.com",
+    password: "Patient123!",
+    username: "juan.delacruz",
+    name: demoPatient.name,
+    phone: "09171234567",
+    role: "patient",
+    status: "active",
+    emailVerified: true,
+  },
+  {
+    id: "admin_1",
+    email: "admin@sugbodoc.com",
+    password: "Admin123!",
+    username: "admin",
+    name: "Admin User",
+    phone: "09170000001",
+    role: "admin",
+    status: "active",
+    emailVerified: true,
+  },
+  {
+    id: "doctor_1",
+    email: "doctor@sugbodoc.com",
+    password: "Doctor123!",
+    username: "doctor",
+    name: doctors[0]?.name ?? "Dr. Ana Reyes",
+    phone: "09170000002",
+    role: "doctor",
+    status: "active",
+    emailVerified: true,
+  },
+];
+
+let userDirectory: StoredUser[] = seededUsers.map((u) => ({ ...u }));
+let directoryLoaded = false;
+
+function loadDirectory() {
+  if (directoryLoaded || typeof window === "undefined") return;
+  directoryLoaded = true;
+  try {
+    const raw = localStorage.getItem(USERS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as StoredUser[];
+      if (Array.isArray(parsed) && parsed.length) {
+        // Merge stored records over the seeds so new seeds still appear.
+        const merged = seededUsers.map((seed) => {
+          const stored = parsed.find((p) => p.email?.toLowerCase() === seed.email.toLowerCase());
+          return stored ? { ...seed, ...stored } : { ...seed };
+        });
+        for (const stored of parsed) {
+          if (!merged.some((m) => m.email?.toLowerCase() === stored.email?.toLowerCase())) {
+            merged.push(stored);
+          }
+        }
+        userDirectory = merged;
+      }
+    }
+  } catch {
+    userDirectory = seededUsers.map((u) => ({ ...u }));
+  }
+}
+
+function persistDirectory() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(userDirectory));
+  } catch {
+    // ignore quota errors in the demo
+  }
+}
+
+function findUserByIdentifier(identifier: string): StoredUser | undefined {
+  loadDirectory();
+  const value = identifier.trim().toLowerCase();
+  return userDirectory.find(
+    (u) => u.email.toLowerCase() === value || (u.username ?? "").toLowerCase() === value,
+  );
+}
+
 function makeUser(identifier: string, name?: string, phone?: string): StoredUser {
-  const isAdmin = identifier.toLowerCase().includes("admin");
-  return {
-    id: isAdmin ? "admin_1" : "user_1",
+  const existing = findUserByIdentifier(identifier);
+  if (existing) return { ...existing, ...(name ? { name } : {}), ...(phone ? { phone } : {}) };
+
+  const lowered = identifier.toLowerCase();
+  const role: AppRole = lowered.includes("admin")
+    ? "admin"
+    : lowered.includes("doctor")
+      ? "doctor"
+      : "patient";
+  const user: StoredUser = {
+    id: uid("user"),
     email: identifier.includes("@") ? identifier : `${identifier}@sugbodoc.ph`,
     username: identifier,
-    name: name ?? (isAdmin ? "Admin User" : demoPatient.name),
+    name: name ?? (role === "admin" ? "Admin User" : role === "doctor" ? "Doctor" : demoPatient.name),
     phone: phone ?? "09171234567",
-    role: isAdmin ? "admin" : "patient",
+    role,
     status: "active",
     emailVerified: true,
   };
+  loadDirectory();
+  userDirectory.push(user);
+  persistDirectory();
+  return user;
 }
+
+/** The mock doctor directory name that a signed-in doctor account maps to. */
+function currentDoctorName(): string | null {
+  if (!currentUser || normalizeRole(currentUser.role) !== "doctor") return null;
+  const match = doctors.find((d) => d.name.toLowerCase() === currentUser!.name.toLowerCase());
+  return (match ?? doctors[0])?.name ?? null;
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Patient account mock state
@@ -361,9 +479,13 @@ export const apiClient = {
     return ok({ token: "mock-token", user });
   },
 
-  login: async (identifier: string, _password: string) => {
+  login: async (identifier: string, password: string) => {
     await delay();
     if (!identifier) return fail("Please enter your credentials");
+    const existing = findUserByIdentifier(identifier);
+    if (existing?.password && existing.password !== password) {
+      return fail("Incorrect email or password.");
+    }
     const user = makeUser(identifier);
     currentUser = user;
     return ok({ token: "mock-token", user });
@@ -384,6 +506,14 @@ export const apiClient = {
       }
     }
     if (!currentUser) return fail("Not authenticated");
+    // Always resolve the role from the directory so admin role changes apply immediately.
+    const directoryUser = findUserByIdentifier(currentUser.email ?? currentUser.username ?? "");
+    if (directoryUser) {
+      currentUser = { ...currentUser, role: directoryUser.role, name: directoryUser.name };
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sugbodoc_user", JSON.stringify(currentUser));
+      }
+    }
     return ok({ user: currentUser });
   },
 
@@ -392,6 +522,59 @@ export const apiClient = {
     currentUser = null;
     return ok({ ok: true });
   },
+
+  // Role management (admin only)
+  getManagedUsers: async (search?: string) => {
+    await delay();
+    if (!currentUser || normalizeRole(currentUser.role) !== "admin") {
+      return fail("Only administrators can manage roles");
+    }
+    loadDirectory();
+    const users = userDirectory
+      .filter((u) => matchesSearch(u.name, search) || matchesSearch(u.email, search))
+      .map((u) => ({ ...u, role: normalizeRole(u.role) }));
+    return ok({ users });
+  },
+
+  updateUserRole: async (userId: string, role: AppRole) => {
+    await delay();
+    if (!currentUser || normalizeRole(currentUser.role) !== "admin") {
+      return fail("Only administrators can change roles");
+    }
+    loadDirectory();
+    const user = userDirectory.find((u) => u.id === userId);
+    if (!user) return fail("User not found");
+    if (user.id === currentUser.id && role !== "admin") {
+      return fail("You cannot remove your own administrator role");
+    }
+    user.role = normalizeRole(role);
+    persistDirectory();
+    return ok({ user: { ...user } });
+  },
+
+  // Doctor endpoints (scoped to the signed-in doctor)
+  getDoctorDashboard: async () => {
+    await delay();
+    const doctorName = currentDoctorName();
+    if (!doctorName) return fail("Not authorized");
+    const patients = adminPatients.filter((p) => p.assignedDoctor === doctorName);
+    const appointments = adminAppointments.filter((a) => a.doctorName === doctorName);
+    const encounters = adminEncounters.filter((e) => e.doctor === doctorName);
+    const queue = adminQueue.filter((q) => q.doctorName === doctorName);
+    return ok({
+      doctor: { name: doctorName, specialty: doctors.find((d) => d.name === doctorName)?.specialty ?? "General Medicine" },
+      summary: {
+        assignedPatients: patients.length,
+        upcomingAppointments: appointments.filter((a) => a.status === "Confirmed" || a.status === "Pending").length,
+        encounters: encounters.length,
+        waitingInQueue: queue.filter((q) => q.status === "Waiting" || q.status === "Serving").length,
+      },
+      recentAppointments: appointments.slice(0, 6),
+      recentEncounters: encounters.slice(0, 6),
+      assignedPatients: patients.slice(0, 6),
+    });
+  },
+
 
   getProfile: async () => {
     await delay();
@@ -717,7 +900,9 @@ export const apiClient = {
 
   getAdminPatients: async (params?: { search?: string; status?: string; sortBy?: string; sortDir?: string }) => {
     await delay();
+    const scope = currentDoctorName();
     let results = adminPatients.filter((p) => {
+      if (scope && p.assignedDoctor !== scope) return false;
       if (params?.status && params.status !== "all" && p.status !== params.status) return false;
       if (params?.search && !(matchesSearch(p.name, params.search) || matchesSearch(p.email, params.search))) return false;
       return true;
@@ -733,6 +918,8 @@ export const apiClient = {
     await delay();
     const patient = adminPatients.find((p) => p.id === id);
     if (!patient) return fail("Patient not found");
+    const scope = currentDoctorName();
+    if (scope && patient.assignedDoctor !== scope) return fail("You are not authorized to view this patient");
     return ok({
       patient: {
         ...patient,
@@ -768,7 +955,9 @@ export const apiClient = {
 
   getAdminAppointments: async (params?: { search?: string; status?: string; department?: string; doctor?: string; date?: string }) => {
     await delay();
+    const scope = currentDoctorName();
     const results = adminAppointments.filter((a) => {
+      if (scope && a.doctorName !== scope) return false;
       if (params?.status && params.status !== "all" && a.status !== params.status) return false;
       if (params?.department && params.department !== "all" && a.department !== params.department) return false;
       if (params?.doctor && params.doctor !== "all" && a.doctorName !== params.doctor) return false;
@@ -781,7 +970,9 @@ export const apiClient = {
 
   getAdminQueue: async (params?: { search?: string; department?: string; status?: string }) => {
     await delay();
+    const scope = currentDoctorName();
     const results = adminQueue.filter((q) => {
+      if (scope && q.doctorName !== scope) return false;
       if (params?.status && params.status !== "all" && q.status !== params.status) return false;
       if (params?.department && params.department !== "all" && q.department !== params.department) return false;
       if (params?.search && !matchesSearch(q.patientName, params.search)) return false;
@@ -859,7 +1050,9 @@ export const apiClient = {
 
   getAdminEncounters: async (params?: { search?: string; patientId?: string; doctor?: string; department?: string; dateFrom?: string; dateTo?: string; sortBy?: string; sortDir?: string; page?: number; limit?: number }) => {
     await delay();
+    const scope = currentDoctorName();
     let results = adminEncounters.filter((e) => {
+      if (scope && e.doctor !== scope) return false;
       if (params?.patientId && e.patientId !== params.patientId) return false;
       if (params?.doctor && params.doctor !== "all" && e.doctor !== params.doctor) return false;
       if (params?.department && params.department !== "all" && e.department !== params.department) return false;
@@ -975,13 +1168,18 @@ export const apiClient = {
   // Admin Messaging
   getAdminMessagingPatients: async (search?: string) => {
     await delay();
-    const results = adminPatients.filter((p) => matchesSearch(p.name, search) || matchesSearch(p.email, search));
+    const scope = currentDoctorName();
+    const results = adminPatients.filter(
+      (p) => (!scope || p.assignedDoctor === scope) && (matchesSearch(p.name, search) || matchesSearch(p.email, search)),
+    );
     return ok({ patients: results.map((p) => ({ id: p.id, name: p.name, email: p.email, phone: p.phone })) });
   },
 
   getAdminConversation: async (patientId: string) => {
     await delay();
     const patient = adminPatients.find((p) => p.id === patientId);
+    const scope = currentDoctorName();
+    if (scope && patient && patient.assignedDoctor !== scope) return fail("You are not authorized to view this conversation");
     return ok({ messages: adminMessagingThreads[patientId] ?? [], patient: patient ? { id: patient.id, name: patient.name, email: patient.email, phone: patient.phone } : { id: patientId, name: "Patient", email: "", phone: "" } });
   },
 

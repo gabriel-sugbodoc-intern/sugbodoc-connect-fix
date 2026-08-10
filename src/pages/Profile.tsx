@@ -3,7 +3,6 @@ import { useLocation } from '@/lib/router-compat';
 import { User, Bell, Shield, Moon, Globe, Check, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
-import LogoutDialog from '@/components/portal/auth/LogoutDialog';
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -248,10 +247,6 @@ export default function Profile() {
               </button>
             </div>
 
-            <LogoutDialog
-              className="w-full flex items-center justify-between pt-2 text-destructive hover:bg-destructive/5 p-2 rounded-lg transition-colors"
-              accountLabel="SugboDoc"
-            />
           </div>
         </section>
 

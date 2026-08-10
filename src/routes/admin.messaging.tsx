@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/messaging")({
     ],
   }),
   component: () => (
-    <AdminPage allowedRoles={["admin", "administrator", "doctor"]}>
+    <AdminPage allowedRoles={["admin"]}>
       <AdminMessaging />
     </AdminPage>
   ),

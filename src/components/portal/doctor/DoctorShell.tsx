@@ -1,69 +1,56 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useLocation } from '@/lib/router-compat';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  ListOrdered, 
-  Package, 
-  ClipboardList,
-  CreditCard,
-  Shield,
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
   HeartPulse,
-  FileCheck2,
   MessageSquare,
-  ShieldCheck,
-  UserCog,
+  User,
+  Stethoscope,
 } from 'lucide-react';
 import LogoutDialog from '@/components/portal/auth/LogoutDialog';
 
-const ADMIN_NAV_ITEMS = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/patients', label: 'Patients', icon: Users },
-  { href: '/admin/encounters', label: 'Encounters', icon: HeartPulse },
-  { href: '/admin/appointments', label: 'Appointments', icon: Calendar },
-  { href: '/admin/queue', label: 'Queue', icon: ListOrdered },
-  { href: '/admin/inventory', label: 'Inventory', icon: Package },
-  { href: '/admin/orders', label: 'Orders', icon: ClipboardList },
-  { href: '/admin/billing', label: 'Billing', icon: CreditCard },
-  { href: '/admin/insurance', label: 'Ins. Requests', icon: FileCheck2 },
-  { href: '/admin/insurance/plans', label: 'Ins. Plans', icon: ShieldCheck },
-  { href: '/admin/messaging', label: 'Messaging', icon: MessageSquare },
-  { href: '/admin/roles', label: 'Role Management', icon: UserCog },
+const DOCTOR_NAV_ITEMS = [
+  { href: '/doctor', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/doctor/patients', label: 'My Patients', icon: Users },
+  { href: '/doctor/encounters', label: 'Encounters', icon: HeartPulse },
+  { href: '/doctor/appointments', label: 'Appointments', icon: Calendar },
+  { href: '/doctor/messaging', label: 'Messaging', icon: MessageSquare },
+  { href: '/doctor/profile', label: 'My Profile', icon: User },
 ] as const;
 
 function isNavActive(location: string, href: string) {
-  if (href === '/admin') return location === '/admin' || location === '/admin/';
-  if (href === '/admin/insurance') return location === '/admin/insurance';
+  if (href === '/doctor') return location === '/doctor' || location === '/doctor/';
   return location === href || location.startsWith(`${href}/`);
 }
 
-function AdminSidebar() {
+function DoctorSidebar() {
   const [location] = useLocation();
 
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card h-screen sticky top-0">
       <div className="p-6 flex items-center gap-3 border-b border-border">
         <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-          <Shield className="w-5 h-5" />
+          <Stethoscope className="w-5 h-5" />
         </div>
         <div>
-          <span className="text-base font-bold text-foreground">Admin Portal</span>
+          <span className="text-base font-bold text-foreground">Doctor Portal</span>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide">SugboDoc</p>
         </div>
       </div>
-      
+
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {ADMIN_NAV_ITEMS.map((item) => {
+        {DOCTOR_NAV_ITEMS.map((item) => {
           const isActive = isNavActive(location, item.href);
           return (
             <Link
               key={item.href}
               to={item.href}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[40px] ${
-                isActive 
-                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                isActive
+                  ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
               data-testid={`nav-${item.href.split('/').pop() || 'dashboard'}`}
@@ -76,21 +63,19 @@ function AdminSidebar() {
       </nav>
 
       <div className="p-3 border-t border-border">
-        <LogoutDialog
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors min-h-[40px]"
-        />
+        <LogoutDialog className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors min-h-[40px]" />
       </div>
     </aside>
   );
 }
 
-function AdminTopBar() {
+function DoctorTopBar() {
   const [location] = useLocation();
-  const currentItem = [...ADMIN_NAV_ITEMS]
+  const currentItem = [...DOCTOR_NAV_ITEMS]
     .sort((a, b) => b.href.length - a.href.length)
-    .find(item => isNavActive(location, item.href) || location.startsWith(`${item.href}/`));
-  
-  const title = currentItem ? currentItem.label : 'Admin';
+    .find((item) => isNavActive(location, item.href));
+
+  const title = currentItem ? currentItem.label : 'Doctor';
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -104,21 +89,23 @@ function AdminTopBar() {
     }
   }, []);
 
-  const initials = user?.name ? user.name.split(/\s+/).map((p: string) => p[0]).join('').slice(0, 2).toUpperCase() : 'AD';
+  const initials = user?.name
+    ? user.name.split(/\s+/).map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+    : 'DR';
 
   return (
     <header className="border-b border-border bg-card px-6 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <HeartPulse className="w-5 h-5 text-primary md:hidden" />
+        <Stethoscope className="w-5 h-5 text-primary md:hidden" />
         <div>
           <h1 className="text-lg font-bold text-foreground">{title}</h1>
-          <p className="text-xs text-muted-foreground hidden sm:block">Healthcare Operations</p>
+          <p className="text-xs text-muted-foreground hidden sm:block">Clinical Workspace</p>
         </div>
       </div>
       <div className="flex items-center gap-3">
         <div className="hidden sm:block text-right mr-2">
-          <p className="text-xs font-medium text-foreground">{user?.name || 'Administrator'}</p>
-          <p className="text-[10px] text-muted-foreground">Admin Role</p>
+          <p className="text-xs font-medium text-foreground">{user?.name || 'Doctor'}</p>
+          <p className="text-[10px] text-muted-foreground">Doctor Role</p>
         </div>
         <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
           {initials}
@@ -128,12 +115,12 @@ function AdminTopBar() {
   );
 }
 
-function AdminBottomNav() {
+function DoctorBottomNav() {
   const [location] = useLocation();
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card pb-safe flex items-center overflow-x-auto z-50">
-       {ADMIN_NAV_ITEMS.map((item) => {
+      {DOCTOR_NAV_ITEMS.map((item) => {
         const isActive = isNavActive(location, item.href);
         return (
           <Link
@@ -153,18 +140,16 @@ function AdminBottomNav() {
   );
 }
 
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+export default function DoctorShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
-      <AdminSidebar />
+      <DoctorSidebar />
       <div className="flex-1 flex flex-col relative w-full h-full">
-        <AdminTopBar />
+        <DoctorTopBar />
         <main className="flex-1 overflow-y-auto w-full pb-[72px] md:pb-0 scrollbar-thin">
-          <div className="max-w-7xl mx-auto w-full h-full p-4 md:p-6">
-            {children}
-          </div>
+          <div className="max-w-7xl mx-auto w-full h-full p-4 md:p-6">{children}</div>
         </main>
-        <AdminBottomNav />
+        <DoctorBottomNav />
       </div>
     </div>
   );

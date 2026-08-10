@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation } from '@/lib/router-compat';
+import { usePortalBase } from '@/lib/portal-base';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, 
@@ -134,6 +135,7 @@ type PatientProfile = {
 };
 
 export default function AdminPatientProfile() {
+  const portalBase = usePortalBase();
   const params = useParams();
   const [, setLocation] = useLocation();
   const [patient, setPatient] = useState<PatientProfile | null>(null);
@@ -245,7 +247,7 @@ export default function AdminPatientProfile() {
       <div className="py-16 text-center">
         <p className="text-muted-foreground">Patient not found</p>
         <button
-          onClick={() => setLocation('/admin/patients')}
+          onClick={() => setLocation(`${portalBase}/patients`)}
           className="mt-4 text-primary hover:underline"
           data-testid="link-back-patients"
         >
@@ -331,7 +333,7 @@ export default function AdminPatientProfile() {
       {/* Header */}
       <div>
         <button
-          onClick={() => setLocation('/admin/patients')}
+          onClick={() => setLocation(`${portalBase}/patients`)}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
           data-testid="button-back"
         >
@@ -409,9 +411,9 @@ export default function AdminPatientProfile() {
             <div className="flex items-center gap-2 mb-4"><Activity className="w-4 h-4 text-primary" /><h3 className="font-semibold text-foreground">Patient Summary</h3></div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <SummaryTile label="Encounters" value={allEncounters.length} onClick={() => setLocation(`/admin/encounters?patientId=${patient.id}`)} />
-              <SummaryTile label="Appointments" value={patient.appointments?.length ?? 0} onClick={() => setLocation('/admin/appointments')} />
-              <SummaryTile label="Outstanding Bills" value={patient.billing?.recentBills.filter(bill => ['Pending', 'Failed'].includes(bill.status)).length ?? 0} onClick={() => setLocation('/admin/billing')} />
-              <SummaryTile label="Store Orders" value={patient.medicalStore?.recentOrders.length ?? 0} onClick={() => setLocation('/admin/orders')} />
+              <SummaryTile label="Appointments" value={patient.appointments?.length ?? 0} onClick={() => setLocation(`${portalBase}/appointments`)} />
+              <SummaryTile label="Outstanding Bills" value={patient.billing?.recentBills.filter(bill => ['Pending', 'Failed'].includes(bill.status)).length ?? 0} onClick={() => setLocation(`${portalBase}/billing`)} />
+              <SummaryTile label="Store Orders" value={patient.medicalStore?.recentOrders.length ?? 0} onClick={() => setLocation(`${portalBase}/orders`)} />
             </div>
           </div>
           <DocumentsCard documents={visibleDocuments} onPreview={previewDocument} onDownload={downloadDocument} />
@@ -535,10 +537,10 @@ export default function AdminPatientProfile() {
           <div className="bg-card border border-border rounded-xl p-5">
             <div className="flex items-center gap-2 mb-4"><DollarSign className="w-4 h-4 text-primary" /><h3 className="font-semibold text-foreground">Billing & Payments</h3></div>
             <div className="mb-4"><div className="text-xs text-muted-foreground">Total Outstanding</div><div className="text-2xl font-bold text-foreground">₱{(patient.billing?.totalOutstanding ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div><div className="grid grid-cols-2 gap-2 text-xs mt-2"><div className="rounded-lg bg-muted/40 p-2"><span className="block text-muted-foreground">Paid bills</span><strong>{patient.billing?.paidBills ?? 0}</strong></div><div className="rounded-lg bg-muted/40 p-2"><span className="block text-muted-foreground">Insurance coverage</span><strong>₱{(patient.billing?.insuranceCoverage ?? 0).toLocaleString('en-PH')}</strong></div></div></div>
-            {patient.billing?.recentBills && patient.billing.recentBills.length > 0 ? <div className="space-y-2"><div className="text-xs font-medium text-muted-foreground mb-2">Recent Bills</div>{patient.billing.recentBills.slice(0, 5).map(bill => <div key={bill.id} className="flex items-center justify-between text-sm border-t border-border pt-2"><div><div className="font-medium text-foreground">{bill.invoiceNo}</div><div className="text-xs text-muted-foreground">{bill.dueDate ? `Due ${new Date(bill.dueDate).toLocaleDateString()}` : 'No due date'}</div></div><div className="text-right"><div className="font-semibold">₱{bill.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div><StatusBadge status={bill.status} /></div></div>)}<button onClick={() => setLocation('/admin/billing')} className="w-full mt-2 text-xs text-primary hover:underline">View all billing</button></div> : <EmptyState text="No recent bills." />}
+            {patient.billing?.recentBills && patient.billing.recentBills.length > 0 ? <div className="space-y-2"><div className="text-xs font-medium text-muted-foreground mb-2">Recent Bills</div>{patient.billing.recentBills.slice(0, 5).map(bill => <div key={bill.id} className="flex items-center justify-between text-sm border-t border-border pt-2"><div><div className="font-medium text-foreground">{bill.invoiceNo}</div><div className="text-xs text-muted-foreground">{bill.dueDate ? `Due ${new Date(bill.dueDate).toLocaleDateString()}` : 'No due date'}</div></div><div className="text-right"><div className="font-semibold">₱{bill.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div><StatusBadge status={bill.status} /></div></div>)}<button onClick={() => setLocation(`${portalBase}/billing`)} className="w-full mt-2 text-xs text-primary hover:underline">View all billing</button></div> : <EmptyState text="No recent bills." />}
           </div>
           <InfoCard title="Payment History" icon={<DollarSign className="w-4 h-4" />}>{patient.billing?.recentPayments && patient.billing.recentPayments.length > 0 ? patient.billing.recentPayments.map(payment => <div key={`${payment.invoiceNo}-${payment.paidAt}`} className="flex items-center justify-between border-t border-border pt-3 first:border-t-0 first:pt-0"><div><div className="text-sm font-medium">{payment.invoiceNo}</div><div className="text-xs text-muted-foreground">{payment.paidAt ? new Date(payment.paidAt).toLocaleDateString() : 'Date unavailable'}</div></div><div className="text-right"><div className="font-semibold">₱{payment.amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div><StatusBadge status={payment.status} /></div></div>) : <EmptyState text="No payment history found." />}</InfoCard>
-          <InfoCard title="Medical Store Orders" icon={<ShoppingBag className="w-4 h-4" />}>{patient.medicalStore?.recentOrders && patient.medicalStore.recentOrders.length > 0 ? <div className="space-y-2">{patient.medicalStore.recentOrders.slice(0, 5).map(order => <div key={order.id} className="flex items-center justify-between text-sm border-t border-border pt-2 first:border-t-0 first:pt-0"><div><div className="font-medium text-foreground">{order.orderNo}</div><div className="text-xs text-muted-foreground">{new Date(order.orderDate).toLocaleDateString()}</div></div><div className="text-right"><div className="font-semibold">₱{order.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div><StatusBadge status={order.status} /><p className="mt-1 text-[11px] text-muted-foreground">{order.paymentStatus || 'Payment pending'} · {order.fulfillmentType === 'pickup' ? 'Pickup' : 'Delivery'}</p></div></div>)}<button onClick={() => setLocation('/admin/orders')} className="w-full mt-2 text-xs text-primary hover:underline">View all orders</button></div> : <EmptyState text="No recent orders." />}</InfoCard>
+          <InfoCard title="Medical Store Orders" icon={<ShoppingBag className="w-4 h-4" />}>{patient.medicalStore?.recentOrders && patient.medicalStore.recentOrders.length > 0 ? <div className="space-y-2">{patient.medicalStore.recentOrders.slice(0, 5).map(order => <div key={order.id} className="flex items-center justify-between text-sm border-t border-border pt-2 first:border-t-0 first:pt-0"><div><div className="font-medium text-foreground">{order.orderNo}</div><div className="text-xs text-muted-foreground">{new Date(order.orderDate).toLocaleDateString()}</div></div><div className="text-right"><div className="font-semibold">₱{order.totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div><StatusBadge status={order.status} /><p className="mt-1 text-[11px] text-muted-foreground">{order.paymentStatus || 'Payment pending'} · {order.fulfillmentType === 'pickup' ? 'Pickup' : 'Delivery'}</p></div></div>)}<button onClick={() => setLocation(`${portalBase}/orders`)} className="w-full mt-2 text-xs text-primary hover:underline">View all orders</button></div> : <EmptyState text="No recent orders." />}</InfoCard>
         </div>
       </Section>
 

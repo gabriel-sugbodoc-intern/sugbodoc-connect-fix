@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import StatusBadge from '@/components/portal/admin/StatusBadge';
+import { usePortalBase } from '@/lib/portal-base';
 
 type Encounter = {
   id: string;
@@ -45,6 +46,7 @@ type Encounter = {
 };
 
 export default function AdminEncounters() {
+  const portalBase = usePortalBase();
   const [location, setLocation] = useLocation();
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -376,7 +378,7 @@ export default function AdminEncounters() {
                       <td className="px-4 py-3 whitespace-nowrap font-medium">{encounter.date}</td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => setLocation(`/admin/patients/${encounter.patientId}`)}
+                          onClick={() => setLocation(`${portalBase}/patients/${encounter.patientId}`)}
                           className="text-primary hover:underline font-medium"
                         >
                           {encounter.patientName}
