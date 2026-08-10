@@ -84,8 +84,9 @@ function AdminSidebar() {
 
 function AdminTopBar() {
   const [location] = useLocation();
-  const currentItem = ADMIN_NAV_ITEMS.find(item => item.href === location) || 
-                     ADMIN_NAV_ITEMS.find(item => item.href !== '/admin' && location.startsWith(item.href));
+  const currentItem = [...ADMIN_NAV_ITEMS]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find(item => isNavActive(location, item.href) || location.startsWith(`${item.href}/`));
   
   const title = currentItem ? currentItem.label : 'Admin';
   const [user, setUser] = useState<any>(null);
