@@ -128,24 +128,24 @@ function AdminTopBar() {
 }
 
 function AdminBottomNav() {
-  const [location, setLocation] = useLocation();
+  const [location] = useLocation();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card pb-safe flex items-center justify-around z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card pb-safe flex items-center overflow-x-auto z-50">
        {ADMIN_NAV_ITEMS.map((item) => {
-        const isActive = location === item.href || (item.href !== '/admin' && location.startsWith(item.href));
+        const isActive = isNavActive(location, item.href);
         return (
-          <button
+          <Link
             key={item.href}
-            onClick={() => setLocation(item.href)}
-            className={`flex flex-col items-center justify-center w-full py-2.5 min-h-[56px] space-y-0.5 transition-colors ${
+            to={item.href}
+            className={`flex flex-col items-center justify-center shrink-0 min-w-[76px] py-2.5 min-h-[56px] space-y-0.5 transition-colors ${
               isActive ? 'text-primary' : 'text-muted-foreground'
             }`}
             data-testid={`nav-mobile-${item.href.split('/').pop() || 'dashboard'}`}
           >
             <item.icon className="w-5 h-5" />
             <span className="text-[10px] font-medium">{item.label}</span>
-          </button>
+          </Link>
         );
       })}
     </nav>
