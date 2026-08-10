@@ -78,7 +78,7 @@ export function BottomNav() {
 export function TopBar() {
   const [location] = useLocation();
   const currentItem = NAV_ITEMS.find(item => item.href === location) || 
-                     NAV_ITEMS.find(item => item.href !== '/' && location.startsWith(item.href));
+                     NAV_ITEMS.find(item => location.startsWith(`${item.href}/`));
   
   const title = currentItem ? currentItem.label : 'SugboDoc';
 
