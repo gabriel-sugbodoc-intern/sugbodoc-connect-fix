@@ -59,19 +59,132 @@ type StoredUser = {
 
 let currentUser: StoredUser | null = null;
 
+export type AppRole = "patient" | "doctor" | "admin";
+export const APP_ROLES: AppRole[] = ["patient", "doctor", "admin"];
+
+export function normalizeRole(role?: string | null): AppRole {
+  const value = String(role ?? "").toLowerCase();
+  if (value === "admin" || value === "administrator") return "admin";
+  if (value === "doctor" || value === "physician") return "doctor";
+  return "patient";
+}
+
+const USERS_STORAGE_KEY = "sugbodoc_users";
+
+// Seeded directory of demo accounts. Roles are persisted locally so admin role
+// changes survive reloads for the duration of the demo.
+const seededUsers: StoredUser[] = [
+  {
+    id: "user_1",
+    email: "juan.delacruz@example.com",
+    username: "juan.delacruz",
+    name: demoPatient.name,
+    phone: "09171234567",
+    role: "patient",
+    status: "active",
+    emailVerified: true,
+  },
+  {
+    id: "admin_1",
+    email: "admin@sugbodoc.com",
+    username: "admin",
+    name: "Admin User",
+    phone: "09170000001",
+    role: "admin",
+    status: "active",
+    emailVerified: true,
+  },
+  {
+    id: "doctor_1",
+    email: "doctor@sugbodoc.com",
+    username: "doctor",
+    name: doctors[0]?.name ?? "Dr. Ana Reyes",
+    phone: "09170000002",
+    role: "doctor",
+    status: "active",
+    emailVerified: true,
+  },
+];
+
+let userDirectory: StoredUser[] = seededUsers.map((u) => ({ ...u }));
+let directoryLoaded = false;
+
+function loadDirectory() {
+  if (directoryLoaded || typeof window === "undefined") return;
+  directoryLoaded = true;
+  try {
+    const raw = localStorage.getItem(USERS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as StoredUser[];
+      if (Array.isArray(parsed) && parsed.length) {
+        // Merge stored records over the seeds so new seeds still appear.
+        const merged = seededUsers.map((seed) => {
+          const stored = parsed.find((p) => p.email?.toLowerCase() === seed.email.toLowerCase());
+          return stored ? { ...seed, ...stored } : { ...seed };
+        });
+        for (const stored of parsed) {
+          if (!merged.some((m) => m.email?.toLowerCase() === stored.email?.toLowerCase())) {
+            merged.push(stored);
+          }
+        }
+        userDirectory = merged;
+      }
+    }
+  } catch {
+    userDirectory = seededUsers.map((u) => ({ ...u }));
+  }
+}
+
+function persistDirectory() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(userDirectory));
+  } catch {
+    // ignore quota errors in the demo
+  }
+}
+
+function findUserByIdentifier(identifier: string): StoredUser | undefined {
+  loadDirectory();
+  const value = identifier.trim().toLowerCase();
+  return userDirectory.find(
+    (u) => u.email.toLowerCase() === value || (u.username ?? "").toLowerCase() === value,
+  );
+}
+
 function makeUser(identifier: string, name?: string, phone?: string): StoredUser {
-  const isAdmin = identifier.toLowerCase().includes("admin");
-  return {
-    id: isAdmin ? "admin_1" : "user_1",
+  const existing = findUserByIdentifier(identifier);
+  if (existing) return { ...existing, ...(name ? { name } : {}), ...(phone ? { phone } : {}) };
+
+  const lowered = identifier.toLowerCase();
+  const role: AppRole = lowered.includes("admin")
+    ? "admin"
+    : lowered.includes("doctor")
+      ? "doctor"
+      : "patient";
+  const user: StoredUser = {
+    id: uid("user"),
     email: identifier.includes("@") ? identifier : `${identifier}@sugbodoc.ph`,
     username: identifier,
-    name: name ?? (isAdmin ? "Admin User" : demoPatient.name),
+    name: name ?? (role === "admin" ? "Admin User" : role === "doctor" ? "Doctor" : demoPatient.name),
     phone: phone ?? "09171234567",
-    role: isAdmin ? "admin" : "patient",
+    role,
     status: "active",
     emailVerified: true,
   };
+  loadDirectory();
+  userDirectory.push(user);
+  persistDirectory();
+  return user;
 }
+
+/** The mock doctor directory name that a signed-in doctor account maps to. */
+function currentDoctorName(): string | null {
+  if (!currentUser || normalizeRole(currentUser.role) !== "doctor") return null;
+  const match = doctors.find((d) => d.name.toLowerCase() === currentUser!.name.toLowerCase());
+  return (match ?? doctors[0])?.name ?? null;
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Patient account mock state
