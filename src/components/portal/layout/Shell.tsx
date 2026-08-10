@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from '@tanstack/react-router';
 import { useLocation } from '@/lib/router-compat';
 import { Home, Calendar, FileText, MessageSquare, User, HeartPulse, ShoppingBag, Shield } from 'lucide-react';
 import LogoutDialog from '@/components/portal/auth/LogoutDialog';
@@ -11,10 +12,10 @@ const NAV_ITEMS = [
   { href: '/profile', label: 'Profile', icon: User },
   { href: '/store', label: 'Medical Store', icon: ShoppingBag },
   { href: '/insurance', label: 'Insurance Plans', icon: Shield },
-];
+] as const;
 
 export function Sidebar() {
-  const [location, setLocation] = useLocation();
+  const [location] = useLocation();
 
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card h-screen sticky top-0">
@@ -25,11 +26,11 @@ export function Sidebar() {
       
       <nav className="flex-1 px-4 py-2 space-y-1">
         {NAV_ITEMS.map((item) => {
-          const isActive = location === item.href || (item.href !== '/' && location.startsWith(item.href));
+          const isActive = location === item.href || location.startsWith(`${item.href}/`);
           return (
-            <button
+            <Link
               key={item.href}
-              onClick={() => setLocation(item.href)}
+              to={item.href}
               className={`w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors min-h-[44px] ${
                 isActive 
                   ? 'bg-accent text-primary' 
@@ -38,33 +39,36 @@ export function Sidebar() {
             >
               <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
               {item.label}
-            </button>
+            </Link>
           );
         })}
       </nav>
 
+      <div className="p-4 border-t border-border">
+        <LogoutDialog className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors min-h-[40px]" />
+      </div>
     </aside>
   );
 }
 
 export function BottomNav() {
-  const [location, setLocation] = useLocation();
+  const [location] = useLocation();
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card pb-safe flex items-center justify-around z-50">
       {NAV_ITEMS.map((item) => {
-        const isActive = location === item.href || (item.href !== '/' && location.startsWith(item.href));
+        const isActive = location === item.href || location.startsWith(`${item.href}/`);
         return (
-          <button
+          <Link
             key={item.href}
-            onClick={() => setLocation(item.href)}
+            to={item.href}
             className={`flex flex-col items-center justify-center w-full py-3 min-h-[56px] space-y-1 transition-colors ${
               isActive ? 'text-primary' : 'text-muted-foreground'
             }`}
           >
             <item.icon className="w-6 h-6" />
             <span className="text-[10px] font-medium">{item.label}</span>
-          </button>
+          </Link>
         );
       })}
     </nav>
