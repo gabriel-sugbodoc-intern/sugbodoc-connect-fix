@@ -21,6 +21,7 @@ type Patient = {
 };
 
 export default function AdminPatients() {
+  const portalBase = usePortalBase();
   const [, setLocation] = useLocation();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);

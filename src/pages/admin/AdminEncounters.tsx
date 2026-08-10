@@ -46,6 +46,7 @@ type Encounter = {
 };
 
 export default function AdminEncounters() {
+  const portalBase = usePortalBase();
   const [location, setLocation] = useLocation();
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -135,6 +135,7 @@ type PatientProfile = {
 };
 
 export default function AdminPatientProfile() {
+  const portalBase = usePortalBase();
   const params = useParams();
   const [, setLocation] = useLocation();
   const [patient, setPatient] = useState<PatientProfile | null>(null);
