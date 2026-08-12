@@ -21,11 +21,6 @@ function useSession(allowedRoles?: AppRole[]) {
 
   useEffect(() => {
     let active = true;
-    const token = localStorage.getItem("sugbodoc_auth");
-    if (!token) {
-      setLocation("/login", { replace: true });
-      return;
-    }
     apiClient.getMe().then(({ data }: { data?: any }) => {
       if (!active) return;
       if (data?.user) {

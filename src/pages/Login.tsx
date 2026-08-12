@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from '@/lib/router-compat';
-import { HeartPulse, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { HeartPulse, Loader as Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
@@ -61,7 +61,6 @@ export default function Login({ initialMode = 'login' }: { initialMode?: Mode } 
         return;
       }
       if (data) {
-        localStorage.setItem('sugbodoc_auth', data.token);
         localStorage.setItem('sugbodoc_user', JSON.stringify(data.user));
         const role = String(data.user.role ?? '').toLowerCase();
         setLocation(
@@ -91,7 +90,6 @@ export default function Login({ initialMode = 'login' }: { initialMode?: Mode } 
         return;
       }
       if (data) {
-        localStorage.setItem('sugbodoc_auth', data.token);
         localStorage.setItem('sugbodoc_user', JSON.stringify(data.user));
         toast.success('Account created! Welcome to SugboDoc.');
         setLocation('/');
