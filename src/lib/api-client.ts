@@ -612,12 +612,29 @@ export const apiClient = {
 
   getAccountData: async () => {
     await delay();
+    const { data: { user } } = await supabase.auth.getUser();
+    let dbBills: any[] = [];
+    if (user) {
+      const { data: billsData } = await supabase
+        .from("bills")
+        .select("*")
+        .eq("patient_id", user.id)
+        .order("created_at", { ascending: false });
+      dbBills = (billsData ?? []).map((b) => ({
+        id: b.id, invoiceNo: b.invoice_no, description: b.description,
+        category: b.category, amount: Number(b.amount).toFixed(2),
+        status: b.status, paymentMethod: b.payment_method || null,
+        createdAt: new Date(b.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        paidAt: b.paid_at ? new Date(b.paid_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : null,
+        orderId: b.order_id, details: b.details,
+      }));
+    }
     return ok({
       profile: { ...profileStore },
       appointments: accountAppointments,
       records: seedEncounters,
       messages: accountMessages,
-      bills: seedBills.outstanding,
+      bills: dbBills.length ? dbBills : seedBills.outstanding,
       queue: queueState,
     });
   },
@@ -676,63 +693,178 @@ export const apiClient = {
 
   // Medical Store
   getStoreProducts: async () => {
-    await delay();
-    return ok({ products: storeProducts, categories: storeCategories, branches: storeBranches });
+    const [prodRes, branchRes] = await Promise.all([
+      supabase.from("store_products").select("*").eq("active", true).order("name"),
+      supabase.from("store_branches").select("*").order("name"),
+    ]);
+    if (prodRes.error) return fail(handleError(prodRes.error, "Failed to load products"));
+    const categories = [...new Set((prodRes.data ?? []).map((p) => p.category))];
+    const products = (prodRes.data ?? []).map((p) => ({
+      id: p.id, name: p.name, description: p.description, category: p.category,
+      price: Number(p.price).toFixed(2), stock: p.stock, brand: p.brand,
+      imageUrl: p.image_url || `https://placehold.co/300x225/e2e8f0/64748b?text=${encodeURIComponent(p.name)}`,
+      rating: Number(p.rating).toFixed(1), reviewCount: p.review_count,
+      prescriptionRequired: p.prescription_required ? 1 : 0,
+    }));
+    const branches = (branchRes.data ?? []).map((b) => ({
+      id: b.id, name: b.name, address: b.address, hours: b.hours,
+    }));
+    return ok({ products, categories, branches });
   },
 
   getStoreOrders: async () => {
-    await delay();
-    return ok({ orders: storeOrders });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return fail("Not authenticated");
+    const { data: orders, error } = await supabase
+      .from("store_orders")
+      .select("*, items:store_order_items(*)")
+      .eq("patient_id", user.id)
+      .order("created_at", { ascending: false });
+    if (error) return fail(handleError(error, "Failed to load orders"));
+    const branchIds = (orders ?? []).map((o) => o.pickup_branch_id).filter(Boolean);
+    let branchMap: Record<string, string> = {};
+    if (branchIds.length) {
+      const { data: branches } = await supabase.from("store_branches").select("id, name").in("id", branchIds);
+      (branches ?? []).forEach((b) => { branchMap[b.id] = b.name; });
+    }
+    const formatted = (orders ?? []).map((o) => ({
+      id: o.id, orderNo: o.order_no, fulfillmentType: o.fulfillment_type,
+      pickupBranch: o.pickup_branch_id, pickupBranchName: branchMap[o.pickup_branch_id] ?? null,
+      deliveryAddress: o.delivery_address,
+      deliveryFee: Number(o.delivery_fee).toFixed(2), subtotal: Number(o.subtotal).toFixed(2),
+      total: Number(o.total).toFixed(2), status: o.status, paymentStatus: o.payment_status,
+      trackingNo: o.tracking_no, estimatedDelivery: o.estimated_delivery,
+      receivedAt: o.received_at, createdAt: o.created_at,
+      items: (o.items ?? []).map((i: any) => ({
+        productName: i.product_name, brand: i.brand,
+        unitPrice: Number(i.unit_price).toFixed(2), quantity: i.quantity,
+        lineTotal: Number(i.line_total).toFixed(2),
+      })),
+    }));
+    return ok({ orders: formatted });
   },
 
   confirmStoreOrderReceived: async (id: string) => {
-    await delay();
-    const order = storeOrders.find((o) => o.id === id);
-    if (!order) return fail("Order not found");
-    order.status = "Completed";
-    order.receivedAt = "Just now";
-    return ok({ order });
+    const { data, error } = await supabase
+      .from("store_orders")
+      .update({ status: "Completed", received_at: new Date().toISOString() })
+      .eq("id", id).select().maybeSingle();
+    if (error) return fail(handleError(error, "Failed to update order"));
+    if (!data) return fail("Order not found");
+    return ok({ order: data });
   },
 
   createStoreOrder: async (order: { items: Array<{ productId: string; quantity: number }>; fulfillmentType: "pickup" | "delivery"; deliveryAddress?: string; pickupBranch?: string }) => {
-    await delay();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return fail("Not authenticated");
+
+    const productIds = order.items.map((i) => i.productId);
+    const { data: products } = await supabase.from("store_products").select("*").in("id", productIds);
+
     const items = order.items.map((item) => {
-      const product = storeProducts.find((p) => p.id === item.productId);
-      if (product) product.stock = Math.max(0, product.stock - item.quantity);
+      const product = products?.find((p) => p.id === item.productId);
       const unitPrice = Number(product?.price ?? 0);
       return {
+        productId: item.productId,
         productName: product?.name ?? "Item",
         brand: product?.brand ?? "",
-        unitPrice: unitPrice.toFixed(2),
+        unitPrice,
         quantity: item.quantity,
-        lineTotal: (unitPrice * item.quantity).toFixed(2),
+        lineTotal: unitPrice * item.quantity,
       };
     });
-    const subtotal = items.reduce((sum, i) => sum + Number(i.lineTotal), 0);
+
+    const subtotal = items.reduce((sum, i) => sum + i.lineTotal, 0);
     const deliveryFee = order.fulfillmentType === "delivery" ? 80 : 0;
-    const newOrder = {
-      id: uid("ord"),
-      orderNo: `ORD-${Math.floor(100000 + Math.random() * 899999)}`,
-      fulfillmentType: order.fulfillmentType,
-      pickupBranch: order.pickupBranch ?? null,
-      deliveryAddress: order.deliveryAddress ?? null,
-      deliveryFee: deliveryFee.toFixed(2),
-      subtotal: subtotal.toFixed(2),
-      total: (subtotal + deliveryFee).toFixed(2),
+    const orderNo = `ORD-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100).toString().padStart(2, "0")}`;
+
+    const { data: newOrder, error: orderError } = await supabase.from("store_orders").insert({
+      order_no: orderNo,
+      patient_id: user.id,
+      fulfillment_type: order.fulfillmentType,
+      pickup_branch_id: order.pickupBranch ?? null,
+      delivery_address: order.deliveryAddress ?? "",
+      delivery_fee: deliveryFee,
+      subtotal,
+      total: subtotal + deliveryFee,
       status: "Pending",
-      trackingNo: null,
-      estimatedDelivery: order.fulfillmentType === "delivery" ? "3-5 business days" : null,
-      receivedAt: null,
-      createdAt: "Just now",
-      items,
-    };
-    storeOrders = [newOrder, ...storeOrders];
-    return ok({ order: newOrder });
+      payment_status: "Pending",
+      estimated_delivery: order.fulfillmentType === "delivery" ? "3-5 business days" : "Ready within 2 hours",
+    }).select().maybeSingle();
+    if (orderError) return fail(handleError(orderError, "Failed to create order"));
+
+    const orderItems = items.map((i) => ({
+      order_id: newOrder.id,
+      product_id: i.productId,
+      product_name: i.productName,
+      brand: i.brand,
+      unit_price: i.unitPrice,
+      quantity: i.quantity,
+      line_total: i.lineTotal,
+    }));
+    const { error: itemsError } = await supabase.from("store_order_items").insert(orderItems);
+    if (itemsError) return fail(handleError(itemsError, "Failed to create order items"));
+
+    for (const item of order.items) {
+      const product = products?.find((p) => p.id === item.productId);
+      if (product) {
+        const newStock = Math.max(0, product.stock - item.quantity);
+        const newStatus = newStock === 0 ? "Out of Stock" : newStock < (product.reorder_level ?? 20) ? "Low Stock" : "In Stock";
+        await supabase.from("store_products").update({ stock: newStock, status: newStatus }).eq("id", item.productId);
+      }
+    }
+
+    const invoiceNo = `INV-${Date.now().toString().slice(-6)}`;
+    const billItems = items.map((i) => ({ desc: i.productName, qty: i.quantity, unitPrice: i.unitPrice, total: i.lineTotal }));
+    const { error: billError } = await supabase.from("bills").insert({
+      invoice_no: invoiceNo,
+      patient_id: user.id,
+      description: `Store Order ${orderNo}`,
+      category: "Pharmacy",
+      amount: subtotal + deliveryFee,
+      status: "Pending",
+      order_id: newOrder.id,
+      details: {
+        orderNo,
+        orderId: newOrder.id,
+        items: billItems,
+        deliveryFee,
+        fulfillmentType: order.fulfillmentType,
+        pickupBranch: order.pickupBranch ?? null,
+        deliveryAddress: order.deliveryAddress ?? null,
+      },
+    });
+    if (billError) console.error("Failed to create bill for order:", billError.message);
+
+    return ok({
+      order: {
+        id: newOrder.id, orderNo, fulfillmentType: order.fulfillmentType,
+        pickupBranch: order.pickupBranch ?? null,
+        deliveryAddress: order.deliveryAddress ?? null,
+        deliveryFee: deliveryFee.toFixed(2), subtotal: subtotal.toFixed(2),
+        total: (subtotal + deliveryFee).toFixed(2), status: "Pending",
+        paymentStatus: "Pending",
+        trackingNo: null, estimatedDelivery: order.fulfillmentType === "delivery" ? "3-5 business days" : "Ready within 2 hours",
+        receivedAt: null, createdAt: newOrder.created_at,
+        items: items.map((i) => ({
+          productName: i.productName, brand: i.brand,
+          unitPrice: i.unitPrice.toFixed(2), quantity: i.quantity,
+          lineTotal: i.lineTotal.toFixed(2),
+        })),
+      },
+    });
   },
 
   getStoreNotifications: async () => {
-    await delay();
-    return ok({ notifications: storeNotifications });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return fail("Not authenticated");
+    const { data, error } = await supabase.from("store_notifications")
+      .select("*").eq("patient_id", user.id).order("created_at", { ascending: false });
+    if (error) return fail(handleError(error, "Failed to load notifications"));
+    const notifications = (data ?? []).map((n) => ({
+      id: n.id, title: n.title, message: n.message, kind: n.kind, createdAt: n.created_at,
+    }));
+    return ok({ notifications });
   },
 
   getInsurancePlans: async () => {
@@ -859,8 +991,58 @@ export const apiClient = {
   },
 
   getPaymentHistory: async () => {
-    await delay();
-    return ok({ transactions: paymentHistory });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return fail("Not authenticated");
+    const { data, error } = await supabase.from("payment_transactions")
+      .select("*").eq("patient_id", user.id).order("payment_date", { ascending: false });
+    if (error) return fail(handleError(error, "Failed to load payment history"));
+    const transactions = (data ?? []).map((t) => ({
+      id: t.id, billId: t.bill_id, invoiceNo: t.invoice_no,
+      description: t.description, amountPaid: Number(t.amount_paid),
+      status: t.status, paymentMethod: t.method, category: t.category,
+      transactionId: t.transaction_id,
+      paymentDate: t.payment_date,
+    }));
+    return ok({ transactions });
+  },
+
+  payBill: async (billId: string, method: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return fail("Not authenticated");
+    const { data: bill, error: billFetchErr } = await supabase
+      .from("bills").select("*").eq("id", billId).maybeSingle();
+    if (billFetchErr || !bill) return fail("Bill not found");
+    if (bill.status === "Paid") return fail("This bill has already been paid");
+
+    const now = new Date().toISOString();
+    const txnId = `TXN-${Date.now().toString().slice(-6)}`;
+
+    const { error: billUpdateErr } = await supabase.from("bills").update({
+      status: "Paid", payment_method: method, paid_at: now,
+    }).eq("id", billId);
+    if (billUpdateErr) return fail(handleError(billUpdateErr, "Failed to update bill"));
+
+    const { error: txnErr } = await supabase.from("payment_transactions").insert({
+      bill_id: billId,
+      invoice_no: bill.invoice_no,
+      patient_id: user.id,
+      description: bill.description,
+      amount_paid: bill.amount,
+      status: "Paid",
+      method,
+      category: bill.category,
+      transaction_id: txnId,
+    });
+    if (txnErr) console.error("Failed to record payment transaction:", txnErr.message);
+
+    if (bill.order_id) {
+      await supabase.from("store_orders").update({ payment_status: "Paid" }).eq("id", bill.order_id);
+    }
+    if (bill.policy_id) {
+      await supabase.from("insurance_policies").update({ status: "Active", payment_status: "Paid" }).eq("id", bill.policy_id);
+    }
+
+    return ok({ status: "Paid", billId, transactionId: txnId });
   },
 
   confirmPayment: async (intentId: string) => {

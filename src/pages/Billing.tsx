@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  CreditCard, Receipt, Wallet, X, CheckCircle2, ChevronDown,
-  ChevronUp, Download, FileText, AlertCircle, Clock, Ban,
-  RefreshCw, ExternalLink,
-} from 'lucide-react';
+import { CreditCard, Receipt, Wallet, X, CircleCheck as CheckCircle2, ChevronDown, ChevronUp, Download, FileText, CircleAlert as AlertCircle, Clock, Ban, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 import { exportInvoice } from '@/lib/pdf-export';
@@ -306,10 +302,6 @@ export default function Billing() {
     setIsProcessing(true);
 
     try {
-      if (!stripeConfigured) {
-        toast.error('Stripe payments are not connected yet. Please contact the hospital billing office.');
-        return;
-      }
       if (stripeConfigured && paymentMethod === 'card') {
         const returnPath = `${window.location.pathname}`;
         const { data: checkoutData, error: checkoutError } = await apiClient.createCheckoutSession(
@@ -330,7 +322,27 @@ export default function Billing() {
         return;
       }
 
-      toast.error('Unable to start Stripe Checkout for this invoice.');
+      // Direct payment (no Stripe) — mark bill as paid via apiClient.payBill
+      const { data: payResult, error: payError } = await apiClient.payBill(payingInvoice.id, paymentMethod === 'card' ? 'Credit Card' : 'Cash');
+      if (payError || !payResult) {
+        toast.error(payError ?? 'Payment failed. Please try again.');
+        return;
+      }
+
+      const now = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+      const paid = {
+        ...payingInvoice,
+        status: 'Paid' as PayStatus,
+        paymentMethod: paymentMethod === 'card' ? 'Credit Card' : 'Cash',
+        paidOn: now,
+        transactionId: payResult.transactionId,
+      };
+      setOutstanding(prev => prev.filter(inv => inv.id !== payingInvoice.id));
+      setHistory(prev => [paid, ...prev]);
+      setPayingInvoice(null);
+      toast.success('Payment successful!', {
+        description: `Transaction: ${payResult.transactionId}`,
+      });
     } catch (err) {
       toast.error('Payment failed. Please try again or contact billing.');
     } finally {
@@ -525,7 +537,10 @@ export default function Billing() {
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">Payment Method</label>
                 <div className="grid grid-cols-1 gap-2">
-                  {[{ id: 'card', label: 'Stripe Checkout' }].map(m => (
+                  {(stripeConfigured
+                    ? [{ id: 'card', label: 'Stripe Checkout' }]
+                    : [{ id: 'card', label: 'Credit / Debit Card' }, { id: 'cash', label: 'Cash at Counter' }]
+                  ).map(m => (
                     <label key={m.id} className={`flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer transition-colors ${paymentMethod === m.id ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary' : 'border-border hover:bg-muted'}`}>
                       <input type="radio" name="payment_method" value={m.id} checked={paymentMethod === m.id} onChange={(e) => setPaymentMethod(e.target.value)} className="sr-only" />
                       <span className="font-medium text-sm">{m.label}</span>
@@ -534,9 +549,19 @@ export default function Billing() {
                 </div>
               </div>
 
-              {paymentMethod === 'card' && (
+              {paymentMethod === 'card' && stripeConfigured && (
                 <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs text-blue-800">
                   Stripe will securely host the payment form and record the completed transaction in your Stripe account.
+                </div>
+              )}
+              {paymentMethod === 'card' && !stripeConfigured && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+                  Your payment will be processed securely and recorded instantly.
+                </div>
+              )}
+              {paymentMethod === 'cash' && !stripeConfigured && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
+                  Your bill will be marked as paid. Please bring the transaction receipt when visiting the billing counter.
                 </div>
               )}
 
